@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>I LOVE YOU</title>
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: black;
+    color: whitesmoke;
+    font-family: Gorditas, cursive, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+  #container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+  #heartCanvas {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    opacity: 1;
+    pointer-events: none;
+    transition: opacity 2s ease;
+    z-index: 2;
+  }
+  #textContainer {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 6rem;
+    text-align: center;
+    user-select: none;
+    display: flex;
+    gap: 0.5em;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 0; /* Initially hidden */
+    z-index: 3;
+  }
+  #textContainer span {
+    position: relative;
+    display: inline-block;
+  }
+  .td-wrapper {
+    transition: opacity 1s;
+  }
+  .td-hide {
+    opacity: 0;
+  }
+  #textContainer span canvas {
+    position: absolute !important;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 4;
+  }
+</style>
+</head>
+<body>
+<div id="container">
+  <canvas id="heartCanvas"></canvas>
+  <div id="textContainer">
+    <span style="color: white;">I</span>
+    <span style="color: rgb(255, 4, 92)">love</span>
+    <span style="color: white;">you</span>
+    <span style="color: rgb(117, 4, 255)">SONU</span>
+  </div>
+</div>
+
+<script>
+  // Heart animation code (from your first page)
+  (() => {
+    const c = document.getElementById('heartCanvas');
+    const ctx = c.getContext('2d');
+    let WIDTH, HEIGHT;
+
+    function resize() {
+      WIDTH = c.width = window.innerWidth;
+      HEIGHT = c.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const v = 32 + 16 + 8;
+    const R = Math.random;
+    const C = Math.cos;
+    const Y = 6.3;
+    let e = [];
+    let h = [];
+
+    for (let i = 0; i < Y; i += 0.2)
+      h.push([WIDTH / 2 + 210 * Math.pow(Math.sin(i), 3),
+              HEIGHT / 2 + 13 * -(15 * C(i) - 5 * C(2 * i) - 2 * C(3 * i) - C(4 * i))]);
+    for (let i = 0; i < Y; i += 0.4)
+      h.push([WIDTH / 2 + 150 * Math.pow(Math.sin(i), 3),
+              HEIGHT / 2 + 9 * -(15 * C(i) - 5 * C(2 * i) - 2 * C(3 * i) - C(4 * i))]);
+    for (let i = 0; i < Y; i += 0.8)
+      h.push([WIDTH / 2 + 90 * Math.pow(Math.sin(i), 3),
+              HEIGHT / 2 + 5 * -(15 * C(i) - 5 * C(2 * i) - 2 * C(3 * i) - C(4 * i))]);
+
+    for (let i = 0; i < v;) {
+      let x = R() * WIDTH;
+      let y = R() * HEIGHT;
+      let H = 80 * (i / v) + Math.random() * 100;
+      let S = 40 * R() + 60;
+      let B = 60 * R() + 20;
+      let f = [];
+      for (let k = 0; k < v;) f[k++] = {
+        x: x,
+        y: y,
+        X: 0,
+        Y: 0,
+        R: 1 - k / v + 1,
+        S: R() + 1,
+        q: ~~(R() * v),
+        D: 2 * (i % 2) - 1,
+        F: 0.2 * R() + 0.7,
+        f: "hsla(" + ~~H + "," + ~~S + "%," + ~~B + "%,.1)"
+      };
+      e[i++] = f;
+    }
+
+    function path(d) {
+      ctx.fillStyle = d.f;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.R, 0, 6.3, 1);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function animateHeart() {
+      ctx.fillStyle = "rgba(0,0,0,.2)";
+      ctx.fillRect(0, 0, WIDTH, HEIGHT);
+      for (let i = v; i--;) {
+        let f = e[i];
+        let u = f[0];
+        let q = h[u.q];
+        let D = u.x - q[0];
+        let E = u.y - q[1];
+        let G = Math.sqrt(D * D + E * E);
+        if (10 > G) {
+          if (0.95 < R()) u.q = ~~(R() * v);
+          else {
+            if (0.99 < R()) u.D *= -1;
+            u.q += u.D;
+            u.q %= v;
+            if (u.q < 0) u.q += v;
+          }
+        }
+        u.X += -D / G * u.S;
+        u.Y += -E / G * u.S;
+        u.x += u.X;
+        u.y += u.Y;
+        path(u);
+        u.X *= u.F;
+        u.Y *= u.F;
+        for (let k = 0; k < v - 1;) {
+          let T = f[k], N = f[++k];
+          N.x -= 0.7 * (N.x - T.x);
+          N.y -= 0.7 * (N.y - T.y);
+          path(N);
+        }
+      }
+      requestAnimationFrame(animateHeart);
+    }
+
+    animateHeart();
+  })();
+
+
+  // Text Disintegration class (from your second page)
+  class TextDesintegrator {
+    constructor(el, options) {
+      const defaultOptions = {
+        padding: 40,
+        density: 4,
+        duration: 3000
+      };
+      this.step = 0;
+      this.data = [];
+      this.scale = 2;
+      this.el = el;
+      this.el.style.position = "relative";
+      this.el.innerHTML = `<span class="td-wrapper">${this.el.textContent}</span>`;
+      this.inner = this.el.querySelector("span");
+      this.options = {...defaultOptions, ...options};
+      this.reverse = false;
+
+      document.fonts.ready.then(() => {
+        this.createCanvas();
+        this.fillCanvas();
+        this.pixelize();
+        setTimeout(() => this.start(), 0);
+      });
+    }
+    createCanvas() {
+      const { width, height } = this.el.getBoundingClientRect();
+      this.height = height;
+      this.width = width;
+      this.canvas = document.createElement("canvas");
+      this.canvas.width = this.scale * (this.width + 2 * this.options.padding);
+      this.canvas.height = this.scale * (this.height + 2 * this.options.padding);
+      this.canvas.style.width = `${this.width + 2 * this.options.padding}px`;
+      this.canvas.style.height = `${this.height + 2 * this.options.padding}px`;
+      this.canvas.style.transform = `translate3d(${-this.options.padding}px, ${-this.options.padding}px, 0)`;
+      this.context = this.canvas.getContext("2d");
+      this.context.scale(this.scale, this.scale);
+      this.el.append(this.canvas);
+    }
+    clearContext() {
+      this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    }
+    fillCanvas() {
+      const style = getComputedStyle(this.el);
+      this.color = style.getPropertyValue("color");
+      this.context.fillStyle = this.color;
+      this.context.font = style.getPropertyValue("font");
+      this.context.textBaseline = "ideographic";
+      this.context.fillText(
+        this.el.textContent,
+        this.options.padding,
+        (this.canvas.height / this.scale + this.height) / 2
+      );
+    }
+    start() {
+      this.t0 = 0;
+      this.id = window.requestAnimationFrame((t) => this.render(t));
+    }
+    stop() {
+      if (this.id) {
+        window.cancelAnimationFrame(this.id);
+      }
+    }
+    pixelize() {
+      const { padding, density, duration } = this.options;
+      for (let y = 0; y < this.canvas.height + 2 * padding - Math.floor(density / 2); y += density) {
+        for (let x = 0; x < this.canvas.width + 2 * padding - Math.floor(density / 2); x += density) {
+          const { data } = this.context.getImageData(x + Math.floor(density / 4), y + Math.floor(density / 4), 1, 1);
+          const [, , , a] = data;
+          if (a > 0) {
+            this.data.push({
+              alpha: a / 255,
+              longevity: Math.min(duration * 0.25 + Math.random() * duration * 0.75, duration - 1),
+              x,
+              y,
+              initialX: x,
+              initialY: y,
+              finalX: x + 2 * (Math.random() - 0.5) * this.canvas.width,
+              finalY: y + 2 * (Math.random() - 0.5) * this.canvas.width
+            });
+          }
+        }
+      }
+    }
+    render(timestamp) {
+      if (!this.t0) this.t0 = timestamp;
+      const elapsed = timestamp - this.t0;
+
+      if (this.step < Math.min(500, this.options.duration * 0.5)) {
+        if (this.reverse) {
+          this.inner.classList.remove("td-hide");
+        } else {
+          this.inner.classList.add("td-hide");
+        }
+      }
+      this.updateData();
+      this.clearContext();
+      for (const sq of this.data) {
+        this.context.globalAlpha = sq.alpha;
+        this.context.fillStyle = this.color;
+        this.context.fillRect(
+          sq.x / 2,
+          sq.y / 2,
+          this.options.density / 2,
+          this.options.density / 2
+        );
+      }
+
+      this.step = this.reverse ? this.options.duration - elapsed : elapsed;
+
+      if (elapsed > this.options.duration) {
+        this.onComplete();
+      }
+      this.id = requestAnimationFrame((t) => this.render(t));
+    }
+    onComplete() {
+      this.reverse = !this.reverse;
+      this.t0 = 0;
+    }
+    updateData() {
+      for (const sq of this.data) {
+        sq.alpha = this.calculateOpacity(sq.longevity, this.step);
+        sq.x = this.calculatePosition(sq.initialX, sq.finalX, sq.longevity, this.step);
+        sq.y = this.calculatePosition(sq.initialY, sq.finalY, sq.longevity, this.step);
+      }
+    }
+    calculatePosition(xS, xE, l, x) {
+      const expo = (l, x) => {
+        return x < l ? 1 - Math.pow(2, 10 * (x / l) - 10) : 0;
+      };
+      return (xS - xE) * expo(l, x) + xE;
+    }
+    calculateOpacity(l, x) {
+      return x <= l ? 1 - Math.pow(x / l, 1) : 0;
+    }
+  }
+
+const heartCanvas = document.getElementById('heartCanvas');
+const textContainer = document.getElementById('textContainer');
+
+textContainer.style.opacity = '0';
+heartCanvas.style.opacity = '1';
+
+// Create disintegration instances immediately (but text hidden)
+const spans = document.querySelectorAll('#textContainer span');
+const desintegrators = [];
+spans.forEach(span => {
+  desintegrators.push(new TextDesintegrator(span));
+});
+
+// Show heart for 4 seconds
+setTimeout(() => {
+  // Start fading out heart and fading in text *together* for smooth transition
+  heartCanvas.style.transition = 'opacity 4s ease';
+  textContainer.style.transition = 'opacity 2s ease';
+
+  heartCanvas.style.opacity = '0';
+  textContainer.style.opacity = '1';
+
+  // No need to re-create disintegration here, already running
+
+},4000);
+
+
+</script>
+</body>
+</html>
